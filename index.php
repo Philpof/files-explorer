@@ -10,134 +10,190 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   <link rel="stylesheet" href="main.css">
   <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
 
 </head>
 
 <body>
 
-<?php
-//date_default_timezone_set('Europe/Paris');
+<section class="container">
 
-  // -----Création de fichiers-----
-  // fopen permet de créer un nouveau fichier
-  // Si on utilise fopen avec un fichier qui n'existe pas, le fichier va être créé dans le même répertoire que le script qui lance la commande,
-  // si on uilise l'option "w" ou "a"
-  // https://www.w3schools.com/php/php_file_create.asp
-  //
-  // if (!file_exists("nouveau_fichier_cree.txt")) {
-  //   $myfile = fopen("nouveau_fichier_cree.txt", "w") or die("Unable to open file!");
-  //   $txt = "Salut !\n";
-  //   fwrite($myfile, $txt);
-  //   $txt = "Ca va ?\n";
-  //   fwrite($myfile, $txt);
-  //   fclose($myfile);
-  // }
+  <div class="col-sm p-3 mb-2 bg-dark text-white text-center">
+    <h3>Explorateur de fichier</h3>
+  </div>
+
+  <div class="p-3 mb-2 bg-light text-dark">
+
+    <?php
+    date_default_timezone_set('Europe/Paris'); // GMT pour la France
+
+    // Création de dossier
+    if (empty($_POST["nom_dossier"])) {
+      $text_dossier = "Indiquer le nom du dossier à créer.";
+    }
+    else {
+        $nouveau_dossier = $_POST["nom_dossier"]; // variable se créé après avoir vérifier si le champ est vide ou pas
+        if (file_exists($nouveau_dossier) && is_dir($nouveau_dossier)) {
+          $text_dossier = "Le dossier $nouveau_dossier existe déjà.";
+        }
+        else {
+          mkdir($nouveau_dossier);
+          if (file_exists($nouveau_dossier) && is_dir($nouveau_dossier)) {
+            $text_dossier = "Le dossier $nouveau_dossier a bien été créé.";
+          }
+        }
+      }
+
+    // Création de fichier
+    if (empty($_POST["nom_fichier"])) {
+      $text_fichier = "Indiquer le nom du fichier à créer.<br>(il sera créé en .txt)";
+    }
+    else {
+        $nouveau_fichier = $_POST["nom_fichier"]; // variable se créé après avoir vérifier si le champ est vide ou pas
+        if (file_exists($nouveau_fichier.".txt") && !is_dir($nouveau_fichier.".txt")) {
+          $text_fichier = "Le fichier $nouveau_fichier.txt existe déjà.";
+        }
+        else {
+          touch($nouveau_fichier.".txt");
+          if (file_exists($nouveau_fichier.".txt") && !is_dir($nouveau_fichier.".txt")) {
+            $text_fichier = "Le fichier $nouveau_fichier.txt a bien été créé.";
+          }
+        }
+      }
+
+    // Suppression de fichier
+    if (empty($_POST["suppr_fichier"])) {
+      $text_suppr = "Indiquer le nom du fichier à supprimer.";
+    }
+    else {
+        $del_fichier = $_POST["suppr_fichier"]; // variable se créé après avoir vérifier si le champ est vide ou pas
+        if (!file_exists($del_fichier)) {
+          $text_suppr= "Le fichier $del_fichier n'existe pas.";
+        }
+        else {
+          if (is_dir($del_fichier)) {
+            $text_suppr= "$del_fichier est un dossier et non un fichier.";
+          }
+          else {
+            unlink($del_fichier);
+            if (!file_exists($del_fichier)) {
+              $text_suppr = "Le fichier $del_fichier a bien été supprimé.";
+            }
+          }
+        }
+      }
 
 
-// $url = getcwd(); // Récupère le chemin du répertoire courant
-// echo $url; // Affiche le contenu de la variable $url
-//
-// $contenu = scandir($url); // Liste des fichiers et dossiers dans un répertoire
-// // echo $contenu; // Affiche la liste des dossiers et fichiers du répertoire --> [Ne fonctionne pas car erreur "Array to string" (la fonctionne scandir renvoi à un tableau)]
-//
-// foreach ($contenu as $item) { // Boucle "Foreach" pour parcourir les tableaux. En paramètre, la fonctionne prend une variable qui contient un tableau et
-//   $size = filesize($item); // On initialise des variables qui contiennent des fonctions récupérant des informations sur les items
-//   $type = mime_content_type($item);
-//   $date = date("d-m-Y H:i:s", filemtime($item));
-//   $owner = fileowner($item);
-//
-//   echo "<br>".$item." ".$size." ".$type." ".$date." ".$owner;
+
+
+
+
+    $url = getcwd(); // Récupère le chemin du répertoire courant
+    echo $url; // Affiche le contenu de la variable $url
+
+// $url_path = explode(DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR, $url);
+// foreach ($url_path as $url_item) {
+//   print_r($url_item);
 // }
-//
-?>
-
- <div class="container">
-   <div class="col-sm mt-3 mb-2 text-center">
-       <h2>Files Explorer</h2>
-   </div>
-
-     <div class="row">
-       <div class="col-sm mt-3 mb-2">
-
-         <?php
-         // BREADCRUMBS
-         $url = getcwd(); // Récupère le chemin du répertoire courant
-         $parts = parse_url($url); // analyse l'url et retourne ses composants
-         $path = pathinfo($parts['path']); // retourne les infos sur le chemin du répertoire
-
-         // explode sépare chaque élément, trim = supprime les espaces
-         $segments = explode('/', trim($path['dirname'],'/'));
-
-         $breadcrumbs[] = '<a href="/">Home</a>';
-         $crumb_path = '';
-
-         foreach ($segments as $segment)
-         {
-             $crumb_path .= '/' . $segment;
-
-             // ucfirst : majuscule première lettre du mot
-             $value = ucfirst($segment);
-
-             $breadcrumbs[] = '<a href="' . $crumb_path . '">' . $value . '</a>';
-         }
-
-         $breadcrumbs[] = ucwords(str_replace('_', ' ', $path['filename']));
-         $breadcrumbs   = implode(' > ', $breadcrumbs);
-
-         ?>
-
-         <nav aria-label="breadcrumb">
-           <ol class="breadcrumb">
-             <li class="breadcrumb-item"><?php echo $breadcrumbs; ?></li>
-           </ol>
-         </nav>
 
 
 
-       </div>
-     </div>
-   </div>
 
- <div class="container">
-   <div class="row">
-     <div class="col-sm mt-3">
- <?php
-   $url = getcwd(); //gets the current working directory
-   $contents = scandir($url); //scan the directory
- ?>
 
- <table class="table table-sm table-hover mb-5">
-   <thead>
-     <tr>
-       <th scope="col">Nom</th>
-       <th scope="col">Taille</th>
-       <th scope="col">Type</th>
-       <th scope="col">Propriétaire</th>
-       <th scope="col">Date modif</th>
-     </tr>
-   </thead>
-   <tbody>
- <?php
-   foreach ($contents as $item) {
-      $size = "<span style='font-size:12px;'>".filesize($item)."</span>";
-      $type = "<span style='font-size:12px;'>".mime_content_type($item)."</span>";
-      $date = "<span style='font-size:12px;'>".date("d-m-Y H:i:s", filemtime($item))."</span>";
-      $owner = "<span style='font-size:12px;'>".fileowner($item)."</span>";
 
-      if (is_dir("$item")) {
-         echo "<tr><td><i class=\"fas fa-folder-open\"></i> <a href=\"$item\">$item</a></td><td>$size<td>$type</td><td>$owner</td><td>$date</td>";
-      }
-      else {
-         echo "<tr><td><i class=\"fas fa-file\"></i> <a href=\"$item\">$item</a></td><td>$size</td><td>$type</td><td>$owner</td><td>$date</td></tr>";
-      }
-   } //for each
-   echo "</tbody></table>";
- ?>
 
-   </div>
- </div>
- </div>
 
+
+    ?>
+  </div>
+
+</section>
+
+<section class="container"> <!-- Tableau pour afficher les répertoire et fichiers trouvés par "getcwd"-->
+  <table class="table table-hover"> <!-- Tableau Bootstrap : Hoverable rows -->
+    <thead>
+      <tr>
+        <th scope="col">Nom</th>
+        <th scope="col">Type</th>
+        <th scope="col">Taille</th>
+        <th scope="col">Date de Modification</th>
+        <th scope="col">Proprio</th>
+      </tr>
+    </thead>
+    <tbody>
+      <?php
+          $contenu_url = scandir($url); // Liste des fichiers et dossiers dans un répertoire
+
+          foreach ($contenu_url as $item) { // Boucle "Foreach" pour parcourir les tableaux. En paramètre, la fonctionne prend une variable qui contient un tableau et
+          $taille = filesize($item); // Variable indiquant la taille de "item"
+          $type = mime_content_type($item);
+          $date = date("d-m-Y H:i:s", filemtime($item));
+          $proprio = fileowner($item);
+
+            if (is_dir("$item")) {
+
+              echo "<tr>
+                      <td><i class=\"fas fa-folder\"></i><a href=\"$item\"> ".$item."</a></td>
+                      <td>".$type."</td>
+                      <td>".$taille."</td>
+                      <td>".$date."</td>
+                      <td>".$proprio."</td>
+                    </tr>";
+            }
+            else {
+              if (strrchr($item,'.') != '.php' && strrchr($item,'.') != '.css' && strrchr($item,'.') != '.html') { // Masque les fichier .php, .css et .html qui ne seront pas affichés
+                echo "<tr>
+                        <td><i class=\"fas fa-pencil-alt\"></i> <a href=\"$item\">".$item."</a></td>
+                        <td>".$type."</td>
+                        <td>".$taille."</td>
+                        <td>".$date."</td>
+                        <td>".$proprio."</td>
+                      </tr>";
+              }
+            }
+          }
+      ?>
+    </tbody>
+  </table> <!-- Fin du tableau de Bootstrap -->
+</section>
+
+<section class="container">
+  <div class="row">
+    <!-- Création de dossier -->
+    <div class="col-sm p-3 mb-2 bg-dark text-white text-center rounded border border-light">
+      <form class="mb-2" action="index.php" method="post">
+         <label for="nom_dossier" class="text-uppercase font-weight-bold">création de dossier</label>
+         <input type="text" placeholder="Nom du nouveau dossier" name="nom_dossier"><button type="submit" class="ml-1">Créer</button>
+      </form>
+      <?php
+        echo $text_dossier;
+      ?>
+    </div>
+
+    <!-- Création de fichier -->
+    <div class="col-sm p-3 mb-2 bg-dark text-white text-center rounded border border-light">
+      <form class="mb-2" action="index.php" method="post">
+         <label for="nom_fichier" class="text-uppercase font-weight-bold">création de fichier</label>
+         <input type="text" placeholder="Nom du nouveau fichier" name="nom_fichier"><button type="submit" class="ml-1">Créer</button>
+      </form>
+      <?php
+        echo $text_fichier;
+      ?>
+    </div>
+
+    <!-- Suppression de fichier -->
+    <div class="col-sm p-3 mb-2 bg-dark text-white text-center rounded border border-light">
+      <form class="mb-2" action="index.php" method="post">
+         <label for="suppr_fichier" class="text-uppercase font-weight-bold">suppression de fichier</label>
+         <input type="text" placeholder="Nom du fichier à supprimer" name="suppr_fichier"><button type="submit" class="ml-1">Supprimer</button>
+      </form>
+      <?php
+        echo $text_suppr;
+      ?>
+    </div>
+
+  </div>
+</section>
 
 
 
@@ -146,5 +202,4 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
 </body>
-
 </html>
