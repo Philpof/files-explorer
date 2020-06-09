@@ -6,9 +6,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="author" content="Philippe PERECHODOV">
-  <title>File Explorer</title>
+  <title>Explorateur de fichier en PHP</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-  <link rel="stylesheet" href="main.css">
+  <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
 
@@ -18,12 +18,11 @@
 
 <section class="container">
 
-  <div class="col-sm p-3 mb-2 bg-dark text-white text-center">
+  <div class="col-sm p-3 mb-2 bg-dark text-white text-center rounded">
     <h3>Explorateur de fichier</h3>
   </div>
 
   <?php
-
   date_default_timezone_set('Europe/Paris'); // GMT pour la France
 
   // Création de dossier
@@ -83,19 +82,46 @@
     }
   ?>
 
-  <div class="p-3 mb-2 bg-light text-dark">
-    <div class="">
-      <?php
-        $url = getcwd(); // Récupère le chemin du répertoire courant
-        echo $url; // Affiche le contenu de la variable $url
-      ?>
+  <div class="p-3 mb-2 bg-light text-dark rounded border">
+    <div class="row d-flex justify-content-between">
+      <div class="">
+        <?php
+        // Affichage du chemin du répertoire courant
+        if(isset($_POST['selected'])) {
+            if(chdir($_POST['selected'])) { //si un dossier est sélectionné aller vers ce dossier
+              chdir($_POST['selected']);
+            }else{
+              chdir(getcwd());
+            }
+        }
+        $dir = getcwd(); // Récupère le chemin du répertoire courant
+        echo "<span class=\"font-weight-bold\">Chemin actuel :</span>"." ".$dir; // Affiche le contenu de la variable $dir
+        ?>
+      </div>
+      <div class="">
+        <button type="button" class="btn btn-outline-dark mr-2">Afficher les dossiers cachés</button>
+      </div>
     </div>
-    
-    <div class="">
 
+    <div class="">
     <?php
 
-// Fil d'ariane cliquable
+// Test fil d'ariane via URL
+if (!empty($_GET['url'])) {
+  $url = explode("/", $_GET['url']);
+}
+$url_dir = '';
+if (!empty($_GET['url'])) {
+  foreach ($url as $url_item) {
+    $url_dir .= $url_item;
+    echo "<a href='?url=".$url_dir."'>/ $url_item</a>";
+    $url_dir .= '/';
+  }
+}
+
+
+
+// Fil d'ariane cliquable (http://www.astuces-webmaster.ch/page/fil-ariane-php)
 $def = "index";
 $dPath = $_SERVER['PHP_SELF'];
 $dChunks = explode("/", $dPath);
@@ -121,7 +147,6 @@ for($i=1; $i<count($dChunks); $i++ ){
     ?>
 
     </div>
-
   </div>
 </section>
 
@@ -131,13 +156,13 @@ for($i=1; $i<count($dChunks); $i++ ){
       <tr>
         <th scope="col">Nom</th>
         <th scope="col">Type</th>
-        <th scope="col">Taille</th>
+        <th scope="col">Taille (en octet)</th>
         <th scope="col">Date de Modification</th>
       </tr>
     </thead>
     <tbody>
       <?php
-          $contenu_url = scandir($url); // Liste des fichiers et dossiers dans un répertoire
+          $contenu_url = scandir($dir); // Liste des fichiers et dossiers dans un répertoire
 
           foreach ($contenu_url as $item) { // Boucle "Foreach" pour parcourir les tableaux. En paramètre, la fonctionne prend une variable qui contient un tableau et
           $taille = filesize($item); // Variable indiquant la taille de "item"
@@ -145,24 +170,25 @@ for($i=1; $i<count($dChunks); $i++ ){
           $date = date("d-m-Y H:i:s", filemtime($item));
           $proprio = fileowner($item);
 
-            if (is_dir("$item")) {
-
+            if (is_dir(realpath($item))) {
+                      /* <td><i class=\"fas fa-folder\"></i><a href=\"$item\"> ".$item."</a></td> */
               echo "<tr>
-                      <td><i class=\"fas fa-folder\"></i><a href=\"$item\"> ".$item."</a></td>
+                      <td><form method='POST'><i class=\"fas fa-folder\"></i><input type='hidden' name='selected' value=".realpath($item)."><a href=\"".$_SERVER['PHP_SELF']."?url=".rawurlencode($item).
+        "\">$item<button class='btn btn-link' type='submit'>$item</button></a></form></td>
                       <td>".$type."</td>
                       <td>".$taille."</td>
                       <td>".$date."</td>
                     </tr>";
             }
             else {
-              if (strrchr($item,'.') != '.php' && strrchr($item,'.') != '.css' && strrchr($item,'.') != '.html') { // Masque les fichier .php, .css et .html qui ne seront pas affichés
+              // if (strrchr($item,'.') != '.php' && strrchr($item,'.') != '.css' && strrchr($item,'.') != '.html') { // Masque les fichier .php, .css et .html qui ne seront pas affichés
                 echo "<tr>
                         <td><i class=\"fas fa-pencil-alt\"></i> <a href=\"$item\">".$item."</a></td>
                         <td>".$type."</td>
                         <td>".$taille."</td>
                         <td>".$date."</td>
                       </tr>";
-              }
+              // }
             }
           }
       ?>
