@@ -90,12 +90,12 @@
         echo $url; // Affiche le contenu de la variable $url
       ?>
     </div>
-    
+
     <div class="">
 
     <?php
 
-// Fil d'ariane cliquable
+// Fil d'ariane cliquable (http://www.astuces-webmaster.ch/page/fil-ariane-php)
 $def = "index";
 $dPath = $_SERVER['PHP_SELF'];
 $dChunks = explode("/", $dPath);
