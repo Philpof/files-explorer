@@ -1,9 +1,11 @@
 <?php
 include "header.php";
 include "GMT.php";
+// include "feuille_de_test.php";
 include "crea_doss.php";
 include "crea_fich.php";
 include "suppr_fich.php";
+include "chem_rep.php";
 ?>
 
 <section class="container">
@@ -15,12 +17,24 @@ include "suppr_fich.php";
   <div class="p-3 mb-2 bg-light text-dark rounded border">
     <div class="row d-flex justify-content-between">
       <div class="">
-        <?php include "chem_rep.php"; ?>
+        <?php
+        echo $aff_chem_rep;
+        ?>
+        <br>
+        <?php
+        $url_test = $_SERVER['PHP_SELF'];
+        echo($url_test);
+
+        ?>
       </div>
 
       <div class="">
         <button type="button" class="btn btn-outline-dark mr-2">Afficher les dossiers cachés</button>
       </div>
+      <div class="">
+        <button type="button" class="btn btn-outline-dark mr-2">Afficher les dossiers PHP, HTML & CSS</button>
+      </div>
+
     </div>
 
     <div class="">

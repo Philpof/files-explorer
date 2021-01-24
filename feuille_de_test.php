@@ -1,54 +1,40 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
+<!-- test de fil d'ariane -->
 
-<head>
+<?php
 
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="author" content="Philippe PERECHODOV">
-  <title>Calcul en PHP</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-  <link rel="stylesheet" href="main.css">
-  <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet">
+function ScanDirectory($pDir, $pData) {
 
-</head>
+    if (!empty($pData)) {
+        $pDir = $pDir.'/'.$pData;
+    }
 
-<body>
+    if ($dir = opendir($pDir)) {
+        $listDir = array();
 
-    <!-- <form class="form-inline" action="result.php" method="post">
-     <label for="name">Name :</label>
-     <input type="text" id="name" placeholder="Enter your name" name="name">
-     <label for="birthdate">Birthdate :</label>
-     <input type="text" id="birthdate" placeholder="Enter your birthdate" name="birthdate">
+        while($file = readdir($dir)) {
+            if($file != '.' && $file != '..') {
+                if (!empty($pData)) {
+                    $listDir[] = $pData.'/'.$file;
 
-     <button type="submit">Submit</button>
-   </form> -->
+                } else {
+                   $listDir[] = $file;
 
-    <?php
+                }
+          }
+        }
+    closedir($dir);
+    }
+    return $listDir;
 
-    // $d = dir("/wamp64/www/PPERECHODOV/files-explorer");
-    // echo "Pointeur : ".$d->handle."<br>";
-    // echo "Chemin : ".$d->path."<br>";
-    //
-    // while($entry = $d->read()) {
-    //     echo $entry."<br>\n";
-    // }
-    //   $d->close();
+}
 
+$defaultDir = getcwd();
 
-    // $i = 1;
-    // while ($i <= 20) {
-    //     echo $i . "<br>";
-    //     $i=$i+1;
-    // }
-      ?>
-
-
-
-<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
-
-</body>
-
-</html>
+if (empty($_GET['dir']))  {
+    $list = ScanDirectory($defaultDir, "");
+} else {
+    $dir = $_GET['dir'];
+    $list = ScanDirectory($defaultDir, $dir);
+}
+chdir($defaultDir);
+?>
